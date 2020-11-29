@@ -1,5 +1,10 @@
 package require generator
 
+namespace eval nss {
+    variable version 0.9
+    namespace export {[a-z]*}
+}
+
 generator define ::nss::hosts {} {
     generator finally ::nss::endhostent
     ::nss::sethostent 1

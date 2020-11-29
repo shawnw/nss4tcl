@@ -19,10 +19,7 @@ critcl::ccode {
     #include <errno.h>
 }
 
-namespace eval nss {
-    variable version 0.9
-    namespace export {[a-z]*}
-}
+namespace eval nss {}
 
 critcl::ccode {
     static int make_string_list(Tcl_Interp *interp, Tcl_Obj **res, char **elems) {
