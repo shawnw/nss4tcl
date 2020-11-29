@@ -130,7 +130,7 @@ See `getprotobyname(3)`
 
 See `getprotobynumer(3)`
 
-### nss:protocols
+### nss::protocols
 
 Returns a generator that enumerates all protocols as returned by
 `nss::getprotoent`.
@@ -163,7 +163,7 @@ See `getnetent(3)`
 
 See `getnetbyname(3)`
 
-### nss:networks
+### nss::networks
 
 Returns a generator that enumerates all protocols as returned by
 `nss::getnetent`.
@@ -183,27 +183,27 @@ Commands that return values return a dict with the following fields:
 * dir - Home directory
 * shell - User's shell
 
-### setpwent
+### nss::setpwent
 
 See `setpwent(3)`
 
-### endpwent
+### nss::endpwent
 
 See `endpwent(3)`
 
-### getpwent
+### nss::getpwent
 
 See `getpwent(3)`
 
-### getpwbyname username
+### nss::getpwbyname username
 
 Look up a user by name. See `getpwnam(3)`
 
-### getpwbyuid uid
+### nss::getpwbyuid uid
 
 Look up a user by uid. See `getpwuid(3)`
 
-### users
+### nss::users
 
 Returns a generator that enumerates all users as returned by
 `nss::getpwent`.
@@ -220,27 +220,27 @@ Commands that return values return a dict with the following fields:
 * gid - (Integer) group ID
 * members - List of group members
 
-### setgrent
+### nss::setgrent
 
 See `setgrent(3)`
 
-### endgrent
+### nss::endgrent
 
 See `endgrent(3)`
 
-### getgrent
+### nss::getgrent
 
 See `getgrent(3)`
 
-### getgrbyname groupname
+### nss::getgrbyname groupname
 
 Look up a group by name. See `getgrnam(3)`
 
-### getgrbygid gid
+### nss::getgrbygid gid
 
 Look up a group by gid. See `getgrgid(3)`
 
-### groups
+### nss::groups
 
 Returns a generator that enumerates all groups as returned by
 `nss::getgrent`.
