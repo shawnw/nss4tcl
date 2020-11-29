@@ -17,6 +17,7 @@ critcl::ccode {
     #include <netdb.h>
     #include <pwd.h>
     #include <grp.h>
+    #include <errno.h>
 }
 
 namespace eval nss {
@@ -201,6 +202,44 @@ critcl::ccode {
         return TCL_OK;
     }
 
+    static int make_group_dict(Tcl_Interp *interp, Tcl_Obj **dict,
+                                  struct group *ent) {
+        *dict = Tcl_NewDictObj();
+        Tcl_IncrRefCount(*dict);
+
+        if (!ent) {
+            return TCL_OK;
+        }
+
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("name", -1),
+                               Tcl_NewStringObj(ent->gr_name, -1)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("passwd", -1),
+                               Tcl_NewStringObj(ent->gr_passwd, -1)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("gid", -1),
+                           Tcl_NewIntObj(ent->gr_gid)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        Tcl_Obj *members;
+        if (make_string_list(interp, &members, ent->gr_mem) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("members", -1),
+                           members) != TCL_OK) {
+            Tcl_DecrRefCount(members);
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+
+        return TCL_OK;
+    }
 }
 
 namespace eval nss {
@@ -452,25 +491,72 @@ namespace eval nss {
 
     critcl::cproc setgrent {} void
     critcl::cproc endgrent {} void
+
+    critcl::ccommand getgrent {cdata interp objc objv} {
+        if (objc != 1) {
+            Tcl_WrongNumArgs(interp, 1, objv, "");
+            return TCL_ERROR;
+        }
+
+        struct group *ent = getgrent();
+        Tcl_Obj *res;
+        if (make_group_dict(interp, &res, ent) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, res);
+        return TCL_OK;
+    }
+
+    critcl::cproc getgrbyname {Tcl_Interp* interp char* name} Tcl_Obj* {
+        struct group *ent = getgrnam(name);
+        Tcl_Obj *res;
+        if (make_group_dict(interp, &res, ent) != TCL_OK) {
+            return NULL;
+        } else {
+            return res;
+        }
+    }
+
+    critcl::cproc getgrbygid {Tcl_Interp* interp int gid} Tcl_Obj* {
+        struct group *ent = getgrgid(gid);
+        Tcl_Obj *res;
+        if (make_group_dict(interp, &res, ent) != TCL_OK) {
+            return NULL;
+        } else {
+            return res;
+        }
+    }
+
+    generator define groups {} {
+        generator finally ::nss::endgrent
+        ::nss::setgrent
+        while {[dict size [set group [::nss::getgrent]]] > 0} {
+            generator yield $group
+        }
+    }
 }
 
-proc nss::test {} {
+proc nss::_test {} {
     critcl::load
     puts "Hosts:"
     generator foreach host [nss::hosts] {
         puts "{$host}"
     }
 
+    puts "Services"
     set http [nss::getservbyname http]
     puts "http is on port [dict get $http port]"
 
+    puts "Protocols"
     set udp [nss::getprotobyname udp]
     puts "[dict get $udp name] is protocol [dict get $udp proto]"
 
+    puts "Networks"
     generator foreach net [nss::networks] {
         puts "{$net}"
     }
 
+    puts "Users"
     set shells [dict create]
     generator foreach user [nss::users] {
         dict incr shells [dict get $user shell]
@@ -478,9 +564,17 @@ proc nss::test {} {
     dict for {shell count} $shells {
         puts "Shell $shell has $count users using it."
     }
+
+    puts "Groups"
+    generator foreach group [nss::groups] {
+        set members [dict get $group members]
+        if {[llength $members] > 0} {
+            puts "[dict get $group name] members: $members"
+        }
+    }
 }
 
 if {[info exists argv0] &&
     ([file tail [info script]] eq [file tail $argv0])} {
-    nss::test
+    nss::_test
 }

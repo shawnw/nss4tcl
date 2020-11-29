@@ -131,7 +131,7 @@ Commands that return values return a dict with the following fields:
 * name - The official protocol name.
 * aliases - List of alias names.
 * addrtype - (Integer) address type
-* net - (Integer) network number
+* net - Network address.
 
 ### nss::setnetent stayopen
 
@@ -164,7 +164,7 @@ Commands that return values return a dict with the following fields:
 * name - Username
 * password - Password
 * uid - (Integer) user ID
-* gid - (Grouop) group ID
+* gid - (Integer) group ID
 * gecos - User information
 * dir - Home directory
 * shell - User's shell
@@ -193,3 +193,40 @@ Look up a user by uid. See `getpwuid(3)`
 
 Returns a generator that enumerates all users as returned by
 `nss::getpwent`.
+
+Groups
+------
+
+An interface to the groups database (`/etc/groups`).
+
+Commands that return values return a dict with the following fields:
+
+* name - Group name
+* password - Password
+* gid - (Integer) group ID
+* members - List of group members
+
+### setgrent
+
+See `setgrent(3)`
+
+### endgrent
+
+See `endgrent(3)`
+
+### getgrent
+
+See `getgrent(3)`
+
+### getgrbyname groupname
+
+Look up a group by name. See `getgrnam(3)`
+
+### getgrbygid gid
+
+Look up a group by gid. See `getgrgid(3)`
+
+### groups
+
+Returns a generator that enumerates all groups as returned by
+`nss::getgrent`.
