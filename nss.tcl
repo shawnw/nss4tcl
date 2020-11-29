@@ -251,10 +251,17 @@ namespace eval nss {
             Tcl_WrongNumArgs(interp, 1, objv, "");
             return TCL_ERROR;
         }
+
+        Tcl_SetErrno(0);
+        struct hostent *ent = gethostent();
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return TCL_ERROR;
+        }
+
         Tcl_Obj *dict = Tcl_NewDictObj();
         Tcl_IncrRefCount(dict);
 
-        struct hostent *ent = gethostent();
         if (ent) {
             if (Tcl_DictObjPut(interp, dict, Tcl_NewStringObj("name", -1),
                                Tcl_NewStringObj(ent->h_name, -1)) != TCL_OK) {
@@ -324,7 +331,13 @@ namespace eval nss {
             return TCL_ERROR;
         }
 
+        Tcl_SetErrno(0);
         struct servent *ent = getservent();
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return TCL_ERROR;
+        }
+
         Tcl_Obj *res;
         if (make_servent_dict(interp, &res, ent) != TCL_OK) {
             return TCL_ERROR;
@@ -334,7 +347,13 @@ namespace eval nss {
     }
 
     critcl::cproc getservbyname {Tcl_Interp* interp char* name char* {proto NULL}} Tcl_Obj* {
+        Tcl_SetErrno(0);
         struct servent *ent = getservbyname(name, proto);
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return NULL;
+        }
+
         Tcl_Obj *res;
         if (make_servent_dict(interp, &res, ent) != TCL_OK) {
             return NULL;
@@ -344,7 +363,13 @@ namespace eval nss {
     }
 
     critcl::cproc getservbyport {Tcl_Interp* interp int port char* {proto NULL}} Tcl_Obj* {
+        Tcl_SetErrno(0);
         struct servent *ent = getservbyport(port, proto);
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return NULL;
+        }
+
         Tcl_Obj *res;
         if (make_servent_dict(interp, &res, ent) != TCL_OK) {
             return NULL;
@@ -370,7 +395,13 @@ namespace eval nss {
             return TCL_ERROR;
         }
 
+        Tcl_SetErrno(0);
         struct protoent *ent = getprotoent();
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return TCL_ERROR;
+        }
+
         Tcl_Obj *res;
         if (make_protoent_dict(interp, &res, ent) != TCL_OK) {
             return TCL_ERROR;
@@ -380,7 +411,13 @@ namespace eval nss {
     }
 
     critcl::cproc getprotobyname {Tcl_Interp* interp char* name} Tcl_Obj* {
+        Tcl_SetErrno(0);
         struct protoent *ent = getprotobyname(name);
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return NULL;
+        }
+
         Tcl_Obj *res;
         if (make_protoent_dict(interp, &res, ent) != TCL_OK) {
             return NULL;
@@ -390,7 +427,12 @@ namespace eval nss {
     }
 
     critcl::cproc getprotobynumber {Tcl_Interp* interp int proto} Tcl_Obj* {
+        Tcl_SetErrno(0);
         struct protoent *ent = getprotobynumber(proto);
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return TCL_ERROR;
+        }
         Tcl_Obj *res;
         if (make_protoent_dict(interp, &res, ent) != TCL_OK) {
             return NULL;
@@ -416,7 +458,13 @@ namespace eval nss {
             return TCL_ERROR;
         }
 
+        Tcl_SetErrno(0);
         struct protoent *ent = getnetent();
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return TCL_ERROR;
+        }
+
         Tcl_Obj *res;
         if (make_netent_dict(interp, &res, ent) != TCL_OK) {
             return TCL_ERROR;
@@ -426,7 +474,13 @@ namespace eval nss {
     }
 
     critcl::cproc getnetbyname {Tcl_Interp* interp char* name} Tcl_Obj* {
+        Tcl_SetErrno(0);
         struct netent *ent = getnetbyname(name);
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return NULL;
+        }
+
         Tcl_Obj *res;
         if (make_netent_dict(interp, &res, ent) != TCL_OK) {
             return NULL;
@@ -452,7 +506,12 @@ namespace eval nss {
             return TCL_ERROR;
         }
 
+        Tcl_SetErrno(0);
         struct passwd *ent = getpwent();
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return TCL_ERROR;
+        }
         Tcl_Obj *res;
         if (make_passwd_dict(interp, &res, ent) != TCL_OK) {
             return TCL_ERROR;
@@ -462,7 +521,12 @@ namespace eval nss {
     }
 
     critcl::cproc getpwbyname {Tcl_Interp* interp char* name} Tcl_Obj* {
+        Tcl_SetErrno(0);
         struct passwd *ent = getpwnam(name);
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return NULL;
+        }
         Tcl_Obj *res;
         if (make_passwd_dict(interp, &res, ent) != TCL_OK) {
             return NULL;
@@ -472,7 +536,12 @@ namespace eval nss {
     }
 
     critcl::cproc getpwbyuid {Tcl_Interp* interp int uid} Tcl_Obj* {
+        Tcl_SetErrno(0);
         struct passwd *ent = getpwuid(uid);
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return NULL;
+        }
         Tcl_Obj *res;
         if (make_passwd_dict(interp, &res, ent) != TCL_OK) {
             return NULL;
@@ -498,7 +567,12 @@ namespace eval nss {
             return TCL_ERROR;
         }
 
+        Tcl_SetErrno(0);
         struct group *ent = getgrent();
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return TCL_ERROR;
+        }
         Tcl_Obj *res;
         if (make_group_dict(interp, &res, ent) != TCL_OK) {
             return TCL_ERROR;
@@ -508,7 +582,12 @@ namespace eval nss {
     }
 
     critcl::cproc getgrbyname {Tcl_Interp* interp char* name} Tcl_Obj* {
+        Tcl_SetErrno(0);
         struct group *ent = getgrnam(name);
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return NULL;
+        }
         Tcl_Obj *res;
         if (make_group_dict(interp, &res, ent) != TCL_OK) {
             return NULL;
@@ -518,7 +597,13 @@ namespace eval nss {
     }
 
     critcl::cproc getgrbygid {Tcl_Interp* interp int gid} Tcl_Obj* {
+        Tcl_SetErrno(0);
         struct group *ent = getgrgid(gid);
+        if (!ent && Tcl_GetErrno() != 0) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            return NULL;
+        }
+
         Tcl_Obj *res;
         if (make_group_dict(interp, &res, ent) != TCL_OK) {
             return NULL;
@@ -563,6 +648,13 @@ proc nss::_test {} {
     }
     dict for {shell count} $shells {
         puts "Shell $shell has $count users using it."
+    }
+
+    try {
+        set nosuchuser [nss::getpwbyname bob]
+        puts "[dict get $nosuchuser name]'s home directory: [dict get $nosuchuser dir]"
+    } on error {msg} {
+        puts "Failure to look up user bob: $msg"
     }
 
     puts "Groups"
