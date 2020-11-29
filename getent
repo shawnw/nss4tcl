@@ -1,0 +1,179 @@
+#!/usr/bin/env tclsh
+# -*- tcl -*-
+
+# Clone of getent(1)
+
+package require generator
+package require cmdline
+package require nss
+
+proc print_group {group} {
+    puts [join [list [dict get $group name] [dict get $group password] \
+                    [dict get $group gid] [join [dict get $group members] ,]] :]
+}
+
+proc do_group {keys} {
+    if {[llength $keys] == 0} {
+        generator foreach group [nss::groups] {
+            print_group $group
+        }
+    } else {
+        foreach key $keys {
+            try {
+                if {[string is integer -strict $key]} {
+                    print_group [nss::getgrbygid $key]
+                } else {
+                    print_group [nss::getgrbyname $key]
+                }
+            } on error {} {
+                variable not_found 2
+            }
+        }
+    }
+}
+
+proc do_hosts {keys} {
+    if {[llength $keys] > 0} {
+        error "hosts does not currently support keys"
+    } else {
+        generator foreach host [nss::hosts] {
+            puts "[lindex [dict get $host addresses] 0]\t[join [list [dict get $host name] {*}[dict get $host aliases]] " "]"
+        }
+    }
+}
+
+proc print_network {net} {
+    puts [format "%-22s%s" [dict get $net name] [dict get $net net]]
+}
+
+proc do_networks {keys} {
+    if {[llength $keys] == 0} {
+        generator foreach net [nss::networks] {
+            print_network $net
+        }
+    } else {
+        foreach name $keys {
+            try {
+                print_network [nss::getnetbyname $name]
+            } on error {} {
+                variable not_found 2
+            }
+        }
+    }
+}
+
+proc print_user {user} {
+    puts [join [list [dict get $user name] [dict get $user password] \
+                    [dict get $user uid] [dict get $user gid] \
+                    [dict get $user gecos] [dict get $user dir] \
+                    [dict get $user shell]] :]
+}
+
+proc do_passwd {keys} {
+    if {[llength $keys] == 0} {
+        generator foreach user [nss::users] {
+            print_user $user
+        }
+    } else {
+        foreach key $keys {
+            try {
+                if {[string is integer -strict $key]} {
+                    print_user [nss::getpwbyuid $key]
+                } else {
+                    print_user [nss::getpwbyname $key]
+                }
+            } on error {} {
+                variable not_found 2
+            }
+        }
+    }
+}
+
+proc print_proto {proto} {
+    puts [format "%-20s%s" [dict get $proto name] \
+              [join [list [dict get $proto proto] {*}[dict get $proto aliases]]  " "]]
+}
+
+proc do_protocols {keys} {
+    if {[llength $keys] == 0} {
+        generator foreach proto [nss::protocols] {
+            print_proto $proto
+        }
+    } else {
+        foreach key $keys {
+            try {
+                if {[string is integer -strict $key]} {
+                    print_proto [nss::getprotobynumber $key]
+                } else {
+                    print_proto [nss::getprotobyname $key]
+                }
+            } on error {} {
+                variable not_found 2
+            }
+        }
+    }
+}
+
+proc print_serv {serv} {
+    puts [format "%-22s%s" [dict get $serv name] \
+              [join [list "[dict get $serv port]/[dict get $serv protocol]" \
+                         {*}[dict get $serv aliases]] " "]]
+}
+
+proc do_services {keys} {
+    if {[llength $keys] == 0} {
+        generator foreach serv [nss::services] {
+            print_serv $serv
+        }
+    } else {
+        foreach key $keys {
+            try {
+                if {[string is integer -strict $key]} {
+                    print_serv [nss::getservbyport $key]
+                } else {
+                    print_serv [nss::getservbyname $key]
+                }
+            } on error {} {
+                variable not_found 2
+            }
+        }
+    }
+}
+
+proc main {cmd keys} {
+    variable not_found 0
+    switch -- $cmd {
+        group { do_group $keys }
+        hosts { do_hosts $keys }
+        networks { do_networks $keys }
+        passwd { do_passwd $keys }
+        protocols { do_protocols $keys }
+        services { do_services  $keys }
+        default {
+            error "Unknown command '$cmd'"
+        }
+    }
+    exit $not_found
+}
+
+try {
+
+    set usage {[options] database [key ...]
+
+ Query system NSS databases.
+
+ Available databases: group, hosts, networks, passwd, protocols, services
+
+}
+
+    cmdline::getoptions argv {} $usage
+    if {[llength $argv] == 0} {
+        puts stderr "Usage: $argv0 $usage"
+        exit 1
+    }
+    set argv [lassign $argv cmd]
+    main $cmd $argv
+} on error {msg} {
+    puts stderr $msg
+    exit 1
+}

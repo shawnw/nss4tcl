@@ -165,7 +165,7 @@ critcl::ccode {
             Tcl_DecrRefCount(*dict);
             return TCL_ERROR;
         }
-        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("passwd", -1),
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("password", -1),
                                Tcl_NewStringObj(ent->pw_passwd, -1)) != TCL_OK) {
             Tcl_DecrRefCount(*dict);
             return TCL_ERROR;
@@ -212,7 +212,7 @@ critcl::ccode {
             Tcl_DecrRefCount(*dict);
             return TCL_ERROR;
         }
-        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("passwd", -1),
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("password", -1),
                                Tcl_NewStringObj(ent->gr_passwd, -1)) != TCL_OK) {
             Tcl_DecrRefCount(*dict);
             return TCL_ERROR;
