@@ -459,7 +459,7 @@ namespace eval nss {
         }
 
         Tcl_SetErrno(0);
-        struct protoent *ent = getnetent();
+        struct netent *ent = getnetent();
         if (!ent && Tcl_GetErrno() != 0) {
             Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
             return TCL_ERROR;
