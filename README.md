@@ -153,3 +153,43 @@ See `getnetbyname(3)`
 
 Returns a generator that enumerates all protocols as returned by
 `nss::getnetent`.
+
+Users
+-----
+
+An interface to the users database (`/etc/passwd`).
+
+Commands that return values return a dict with the following fields:
+
+* name - Username
+* password - Password
+* uid - (Integer) user ID
+* gid - (Grouop) group ID
+* gecos - User information
+* dir - Home directory
+* shell - User's shell
+
+### setpwent
+
+See `setpwent(3)`
+
+### endpwent
+
+See `endpwent(3)`
+
+### getpwent
+
+See `getpwent(3)`
+
+### getpwbyname username
+
+Look up a user by name. See `getpwnam(3)`
+
+### getpwbyuid uid
+
+Look up a user by uid. See `getpwuid(3)`
+
+### users
+
+Returns a generator that enumerates all users as returned by
+`nss::getpwent`.

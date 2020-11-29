@@ -154,6 +154,53 @@ critcl::ccode {
         return TCL_OK;
     }
 
+    static int make_passwd_dict(Tcl_Interp *interp, Tcl_Obj **dict,
+                                  struct passwd *ent) {
+        *dict = Tcl_NewDictObj();
+        Tcl_IncrRefCount(*dict);
+
+        if (!ent) {
+            return TCL_OK;
+        }
+
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("name", -1),
+                               Tcl_NewStringObj(ent->pw_name, -1)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("passwd", -1),
+                               Tcl_NewStringObj(ent->pw_passwd, -1)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("uid", -1),
+                           Tcl_NewIntObj(ent->pw_uid)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("gid", -1),
+                           Tcl_NewIntObj(ent->pw_gid)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("gecos", -1),
+                               Tcl_NewStringObj(ent->pw_gecos, -1)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("dir", -1),
+                               Tcl_NewStringObj(ent->pw_dir, -1)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("shell", -1),
+                               Tcl_NewStringObj(ent->pw_shell, -1)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        return TCL_OK;
+    }
+
 }
 
 namespace eval nss {
@@ -278,7 +325,7 @@ namespace eval nss {
     critcl::cproc setprotoent {int stayopen} void
     critcl::cproc endprotoent {} void
 
-    critcl::ccommand getprotent {cdata interp objc objv} {
+    critcl::ccommand getprotoent {cdata interp objc objv} {
         if (objc != 1) {
             Tcl_WrongNumArgs(interp, 1, objv, "");
             return TCL_ERROR;
@@ -360,6 +407,49 @@ namespace eval nss {
     critcl::cproc setpwent {} void
     critcl::cproc endpwent {} void
 
+    critcl::ccommand getpwent {cdata interp objc objv} {
+        if (objc != 1) {
+            Tcl_WrongNumArgs(interp, 1, objv, "");
+            return TCL_ERROR;
+        }
+
+        struct passwd *ent = getpwent();
+        Tcl_Obj *res;
+        if (make_passwd_dict(interp, &res, ent) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, res);
+        return TCL_OK;
+    }
+
+    critcl::cproc getpwbyname {Tcl_Interp* interp char* name} Tcl_Obj* {
+        struct passwd *ent = getpwnam(name);
+        Tcl_Obj *res;
+        if (make_passwd_dict(interp, &res, ent) != TCL_OK) {
+            return NULL;
+        } else {
+            return res;
+        }
+    }
+
+    critcl::cproc getpwbyuid {Tcl_Interp* interp int uid} Tcl_Obj* {
+        struct passwd *ent = getpwuid(uid);
+        Tcl_Obj *res;
+        if (make_passwd_dict(interp, &res, ent) != TCL_OK) {
+            return NULL;
+        } else {
+            return res;
+        }
+    }
+
+    generator define users {} {
+        generator finally ::nss::endpwent
+        ::nss::setpwent
+        while {[dict size [set pw [::nss::getpwent]]] > 0} {
+            generator yield $pw
+        }
+    }
+
     critcl::cproc setgrent {} void
     critcl::cproc endgrent {} void
 }
@@ -379,6 +469,14 @@ proc nss::test {} {
 
     generator foreach net [nss::networks] {
         puts "{$net}"
+    }
+
+    set shells [dict create]
+    generator foreach user [nss::users] {
+        dict incr shells [dict get $user shell]
+    }
+    dict for {shell count} $shells {
+        puts "Shell $shell has $count users using it."
     }
 }
 
