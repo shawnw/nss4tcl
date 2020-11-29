@@ -76,7 +76,6 @@ critcl::ccode {
             return TCL_OK;
         }
 
-
         static int make_protoent_dict(Tcl_Interp *interp, Tcl_Obj **dict,
                                  struct protoent *ent) {
         *dict = Tcl_NewDictObj();
@@ -107,6 +106,51 @@ critcl::ccode {
                 Tcl_DecrRefCount(*dict);
                 return TCL_ERROR;
             }
+        return TCL_OK;
+    }
+
+    static int make_netent_dict(Tcl_Interp *interp, Tcl_Obj **dict,
+                                  struct netent *ent) {
+        *dict = Tcl_NewDictObj();
+        Tcl_IncrRefCount(*dict);
+
+        if (!ent) {
+            return TCL_OK;
+        }
+
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("name", -1),
+                               Tcl_NewStringObj(ent->n_name, -1)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        Tcl_Obj *aliases;
+        if (make_string_list(interp, &aliases, ent->n_aliases) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("aliases", -1),
+                           aliases) != TCL_OK) {
+            Tcl_DecrRefCount(aliases);
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("addrtype", -1),
+                           Tcl_NewIntObj(ent->n_addrtype)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
+        char addrstr[INET6_ADDRSTRLEN + 1];
+        uint32_t net = htonl(ent->n_net);
+        if (!inet_ntop(ent->n_addrtype, &net, addrstr, sizeof addrstr)) {
+            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_DecrRefCount(dict);
+            return TCL_ERROR;
+        }
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("net", -1),
+                           Tcl_NewStringObj(addrstr, -1)) != TCL_OK) {
+            Tcl_DecrRefCount(*dict);
+            return TCL_ERROR;
+        }
         return TCL_OK;
     }
 
@@ -277,9 +321,41 @@ namespace eval nss {
         }
     }
 
-
     critcl::cproc setnetent {int stayopen} void
     critcl::cproc endnetent {} void
+
+    critcl::ccommand getnetent {cdata interp objc objv} {
+        if (objc != 1) {
+            Tcl_WrongNumArgs(interp, 1, objv, "");
+            return TCL_ERROR;
+        }
+
+        struct protoent *ent = getnetent();
+        Tcl_Obj *res;
+        if (make_netent_dict(interp, &res, ent) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, res);
+        return TCL_OK;
+    }
+
+    critcl::cproc getnetbyname {Tcl_Interp* interp char* name} Tcl_Obj* {
+        struct netent *ent = getnetbyname(name);
+        Tcl_Obj *res;
+        if (make_netent_dict(interp, &res, ent) != TCL_OK) {
+            return NULL;
+        } else {
+            return res;
+        }
+    }
+
+    generator define networks {} {
+        generator finally ::nss::endnetent
+        ::nss::setnetent 1
+        while {[dict size [set net [::nss::getnetent]]] > 0} {
+            generator yield $net
+        }
+    }
 
     critcl::cproc setpwent {} void
     critcl::cproc endpwent {} void
@@ -300,6 +376,10 @@ proc nss::test {} {
 
     set udp [nss::getprotobyname udp]
     puts "[dict get $udp name] is protocol [dict get $udp proto]"
+
+    generator foreach net [nss::networks] {
+        puts "{$net}"
+    }
 }
 
 if {[info exists argv0] &&

@@ -120,3 +120,36 @@ See `getprotobynumer(3)`
 
 Returns a generator that enumerates all protocols as returned by
 `nss::getprotoent`.
+
+Networks
+--------
+
+An interface to the network database (`/etc/networks`).
+
+Commands that return values return a dict with the following fields:
+
+* name - The official protocol name.
+* aliases - List of alias names.
+* addrtype - (Integer) address type
+* net - (Integer) network number
+
+### nss::setnetent stayopen
+
+See `setnetent(3)`
+
+### nss::endnetent
+
+See `endnetent(3)`
+
+### nss::getnetent
+
+See `getnetent(3)`
+
+### nss::getnetbyname name
+
+See `getnetbyname(3)`
+
+### nss:networks
+
+Returns a generator that enumerates all protocols as returned by
+`nss::getnetent`.
