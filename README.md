@@ -29,22 +29,23 @@ Commands that return values return a dict with the following fields:
 * addrtype - Integer - host address type.
 * addresses - List of addresses.
 
-#### nss::sethostent stayopen
+### nss::sethostent stayopen
 
 Opens or rewinds the connection. See `sethostent(3)`.
 
-#### nss::endhostent
+### nss::endhostent
 
 See `endhostent(3)`
 
-#### nss::gethostent
+### nss::gethostent
 
 Returns the next host, or an empty dictionary if there are no
 more. See `gethostent(3)`.
 
-#### nss::hosts
+### nss::hosts
 
-A generator that returns all hosts returned by `gethostent`.
+Returns a generator that enumerates all hosts as returned by
+`gethostent`.
 
 Services
 --------
@@ -57,3 +58,65 @@ Commands that return values return a dict with the following fields:
 * aliases - List of alias names.
 * port - The port number of the service.
 * protocol - The protocol used for the service.
+
+### nss::setservent stayopen
+
+See `setservent(3)`.
+
+### nss::endservent
+
+See `endservent(3)`
+
+### nss::getservent
+
+Returns the next service, or an empty dictionary if there are no
+more. See `getservent(3)`.
+
+### nss::getservbyname name ?proto?
+
+See `getservbyname(3)`
+
+### nss::getservbyport port ?proto?
+
+See `getservbyport(3)`
+
+### nss::services
+
+Returns a generator that enumerates all services as returned by
+`nss::getservent`.
+
+Protocols
+---------
+
+An interface to the protocol database (`/etc/protocols`).
+
+Commands that return values return a dict with the following fields:
+
+* name - The official protocol name.
+* aliases - List of alias names.
+* proto - The protocol number
+
+### nss::setprotoent stayopen
+
+See `setprotoent(3)`
+
+### nss::endprotoent
+
+See `endprotoent(3)`
+
+### nss::getprotoent
+
+See `getprotoent(3)`
+
+### nss::getprotobyname name
+
+See `getprotobyname(3)`
+
+### nss::getprotobynumber
+
+See `getprotobynumer(3)`
+
+### nss:protocols
+
+Returns a generator that enumerates all protocols as returned by
+`nss::getprotoent`.

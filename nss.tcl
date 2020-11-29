@@ -73,8 +73,43 @@ critcl::ccode {
                 Tcl_DecrRefCount(*dict);
                 return TCL_ERROR;
             }
+            return TCL_OK;
+        }
+
+
+        static int make_protoent_dict(Tcl_Interp *interp, Tcl_Obj **dict,
+                                 struct protoent *ent) {
+        *dict = Tcl_NewDictObj();
+        Tcl_IncrRefCount(*dict);
+
+        if (!ent) {
+            return TCL_OK;
+        }
+
+        if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("name", -1),
+                               Tcl_NewStringObj(ent->p_name, -1)) != TCL_OK) {
+                Tcl_DecrRefCount(*dict);
+                return TCL_ERROR;
+            }
+            Tcl_Obj *aliases;
+            if (make_string_list(interp, &aliases, ent->p_aliases) != TCL_OK) {
+                Tcl_DecrRefCount(*dict);
+                return TCL_ERROR;
+            }
+            if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("aliases", -1),
+                               aliases) != TCL_OK) {
+                Tcl_DecrRefCount(aliases);
+                Tcl_DecrRefCount(*dict);
+                return TCL_ERROR;
+            }
+            if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("proto", -1),
+                               Tcl_NewIntObj(ent->p_proto)) != TCL_OK) {
+                Tcl_DecrRefCount(*dict);
+                return TCL_ERROR;
+            }
         return TCL_OK;
     }
+
 }
 
 namespace eval nss {
@@ -191,13 +226,57 @@ namespace eval nss {
     generator define services {} {
         generator finally ::nss::endservent
         ::nss::setservent 1
-        for {set host [getservent]} {[dict size $host] > 0} {set host [getservent]} {
-            generator yield $host
+        while {[dict size [set service [::nss::getservent]]] > 0} {
+            generator yield $service
         }
     }
 
     critcl::cproc setprotoent {int stayopen} void
     critcl::cproc endprotoent {} void
+
+    critcl::ccommand getprotent {cdata interp objc objv} {
+        if (objc != 1) {
+            Tcl_WrongNumArgs(interp, 1, objv, "");
+            return TCL_ERROR;
+        }
+
+        struct protoent *ent = getprotoent();
+        Tcl_Obj *res;
+        if (make_protoent_dict(interp, &res, ent) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        Tcl_SetObjResult(interp, res);
+        return TCL_OK;
+    }
+
+    critcl::cproc getprotobyname {Tcl_Interp* interp char* name} Tcl_Obj* {
+        struct protoent *ent = getprotobyname(name);
+        Tcl_Obj *res;
+        if (make_protoent_dict(interp, &res, ent) != TCL_OK) {
+            return NULL;
+        } else {
+            return res;
+        }
+    }
+
+    critcl::cproc getprotobynumber {Tcl_Interp* interp int proto} Tcl_Obj* {
+        struct protoent *ent = getprotobynumber(proto);
+        Tcl_Obj *res;
+        if (make_protoent_dict(interp, &res, ent) != TCL_OK) {
+            return NULL;
+        } else {
+            return res;
+        }
+    }
+
+    generator define protocols {} {
+        generator finally ::nss::endprotoent
+        ::nss::setprotoent 1
+        while {[dict size [set proto [::nss::getprotoent]]] > 0} {
+            generator yield $proto
+        }
+    }
+
 
     critcl::cproc setnetent {int stayopen} void
     critcl::cproc endnetent {} void
@@ -219,6 +298,8 @@ proc nss::test {} {
     set http [nss::getservbyname http]
     puts "http is on port [dict get $http port]"
 
+    set udp [nss::getprotobyname udp]
+    puts "[dict get $udp name] is protocol [dict get $udp proto]"
 }
 
 if {[info exists argv0] &&
