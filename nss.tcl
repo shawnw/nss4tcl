@@ -1,6 +1,5 @@
 package require Tcl 8.6
 package require critcl
-package require generator
 
 critcl::tcl 8.6
 critcl::license {Shawn Wagner} {MIT license}
@@ -314,14 +313,6 @@ namespace eval nss {
         return TCL_OK;
     }
 
-    generator define hosts {} {
-        generator finally ::nss::endhostent
-        ::nss::sethostent 1
-        while {[dict size [set host [::nss::gethostent]]] > 0} {
-            generator yield $host
-        }
-    }
-
     critcl::cproc setservent {int stayopen} void
     critcl::cproc endservent {} void
 
@@ -375,14 +366,6 @@ namespace eval nss {
             return NULL;
         } else {
             return res;
-        }
-    }
-
-    generator define services {} {
-        generator finally ::nss::endservent
-        ::nss::setservent 1
-        while {[dict size [set service [::nss::getservent]]] > 0} {
-            generator yield $service
         }
     }
 
@@ -441,14 +424,6 @@ namespace eval nss {
         }
     }
 
-    generator define protocols {} {
-        generator finally ::nss::endprotoent
-        ::nss::setprotoent 1
-        while {[dict size [set proto [::nss::getprotoent]]] > 0} {
-            generator yield $proto
-        }
-    }
-
     critcl::cproc setnetent {int stayopen} void
     critcl::cproc endnetent {} void
 
@@ -486,14 +461,6 @@ namespace eval nss {
             return NULL;
         } else {
             return res;
-        }
-    }
-
-    generator define networks {} {
-        generator finally ::nss::endnetent
-        ::nss::setnetent 1
-        while {[dict size [set net [::nss::getnetent]]] > 0} {
-            generator yield $net
         }
     }
 
@@ -550,14 +517,6 @@ namespace eval nss {
         }
     }
 
-    generator define users {} {
-        generator finally ::nss::endpwent
-        ::nss::setpwent
-        while {[dict size [set pw [::nss::getpwent]]] > 0} {
-            generator yield $pw
-        }
-    }
-
     critcl::cproc setgrent {} void
     critcl::cproc endgrent {} void
 
@@ -611,15 +570,9 @@ namespace eval nss {
             return res;
         }
     }
-
-    generator define groups {} {
-        generator finally ::nss::endgrent
-        ::nss::setgrent
-        while {[dict size [set group [::nss::getgrent]]] > 0} {
-            generator yield $group
-        }
-    }
 }
+
+critcl::tsources nss_generators.tcl
 
 proc nss::_test {} {
     critcl::load
