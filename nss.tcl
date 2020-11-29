@@ -21,7 +21,7 @@ critcl::ccode {
 }
 
 namespace eval nss {
-    variable version 0.1
+    variable version 0.9
     namespace export {[a-z]*}
 }
 
@@ -670,3 +670,5 @@ if {[info exists argv0] &&
     ([file tail [info script]] eq [file tail $argv0])} {
     nss::_test
 }
+
+package provide nss 0.9

@@ -6,14 +6,28 @@ Interfaces to /etc/passwd, /etc/services, etc. or their alternatives.
 Dependencies
 ------------
 
-critcl, a POSIXish system.
+Tcl 8.6, critcl, tcllib, a POSIXish system.
+
+Installation
+------------
+
+Run `tclsh build.tcl [LIBRARY_PATH]`, possibly with `sudo`. If a path
+is not given, uses `info library`.
+
+License
+-------
+
+MIT.
 
 Package
 =======
 
+Usage
+-----
+
     package require nss
 
-None of these commands are re-enttrant. Using the same family in
+None of these commands are re-entrant. Using the same family in
 multiple threads at once, or, say, `getpwbyname` when a password
 generator is active, will cause unpredictable results.
 
