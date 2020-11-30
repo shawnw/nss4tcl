@@ -161,7 +161,7 @@ critcl::ccode {
         char addrstr[INET6_ADDRSTRLEN + 1];
         uint32_t net = htonl(ent->n_net);
         if (!inet_ntop(ent->n_addrtype, &net, addrstr, sizeof addrstr)) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "inet_ntop: ", Tcl_PosixError(interp), NULL);
             Tcl_DecrRefCount(*dict);
             return TCL_ERROR;
         }
@@ -268,7 +268,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct hostent *ent = gethostent();
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "gethostent: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
 
@@ -303,7 +303,7 @@ namespace eval nss {
                 char addrstr[INET6_ADDRSTRLEN + 1];
                 if (!inet_ntop(ent->h_addrtype, ent->h_addr_list[i], addrstr,
                                sizeof addrstr)) {
-                    Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+                    Tcl_AppendResult(interp, "inet_ntop: ", Tcl_PosixError(interp), NULL);
                     Tcl_DecrRefCount(addrs);
                     Tcl_DecrRefCount(dict);
                     return NULL;
@@ -332,7 +332,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct servent *ent = getservent();
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getservent: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
 
@@ -347,7 +347,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct servent *ent = getservbyname(name, proto);
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getservbyname: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
 
@@ -363,7 +363,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct servent *ent = getservbyport(port, proto);
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getservbyport: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
 
@@ -382,7 +382,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct protoent *ent = getprotoent();
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getprotoent: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
 
@@ -398,7 +398,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct protoent *ent = getprotobyname(name);
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getprotobyname: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
 
@@ -414,7 +414,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct protoent *ent = getprotobynumber(proto);
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getprotobynumber: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
         Tcl_Obj *res;
@@ -432,7 +432,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct netent *ent = getnetent();
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getnetent: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
 
@@ -448,7 +448,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct netent *ent = getnetbyname(name);
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getnetbyname: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
 
@@ -467,7 +467,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct passwd *ent = getpwent();
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getpwent: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
         Tcl_Obj *res;
@@ -482,7 +482,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct passwd *ent = getpwnam(name);
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getpwnam: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
         Tcl_Obj *res;
@@ -497,7 +497,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct passwd *ent = getpwuid(uid);
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getpwuid: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
         Tcl_Obj *res;
@@ -515,7 +515,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct group *ent = getgrent();
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getgrent: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
         Tcl_Obj *res;
@@ -530,7 +530,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct group *ent = getgrnam(name);
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getgrnam: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
         Tcl_Obj *res;
@@ -545,7 +545,7 @@ namespace eval nss {
         Tcl_SetErrno(0);
         struct group *ent = getgrgid(gid);
         if (!ent && Tcl_GetErrno() != 0) {
-            Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
+            Tcl_AppendResult(interp, "getgrgid: ", Tcl_PosixError(interp), NULL);
             return NULL;
         }
 
