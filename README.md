@@ -36,7 +36,9 @@ through their records once at a time, routines for looking up specific
 records (All of which are just thin wrappers over the POSIX functions
 of the same or similar name) and a [generator] for a high level
 iterative iterface. You can get a list of all records with commands
-like `generator to list [nss::users]`.
+like `generator to list [nss::users]`. Users and groups also have
+functions for converting between id numbers and names, inspired by
+similar ones in TclX.
 
 None of these commands are re-entrant. Using the same database family
 in multiple threads at once, or, say, `getpwbyname` when a password
@@ -221,6 +223,15 @@ Look up a user by uid. See `getpwuid(3)`
 Returns a generator that enumerates all users as returned by
 `nss::getpwent`.
 
+### nss::convert user name
+
+Returns the uid of the user with the given name.
+
+### nss::convert userid uid
+
+Returns the name of the user with the given uid.
+
+
 Groups
 ------
 
@@ -257,3 +268,11 @@ Look up a group by gid. See `getgrgid(3)`
 
 Returns a generator that enumerates all groups as returned by
 `nss::getgrent`.
+
+### nss::convert group name
+
+Returns the gid of the group with the given name.
+
+### nss::convert groupid gid
+
+Returns the name of the group with the given gid.

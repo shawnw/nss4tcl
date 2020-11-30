@@ -74,3 +74,46 @@ generator define ::nss::groups {} {
         generator yield $group
     }
 }
+
+# Conversion routines inspired by TclX
+
+namespace eval nss::convert {
+    namespace export {[a-z]*}
+    namespace ensemble create
+}
+
+proc nss::convert::userid {uid} {
+    try {
+        set user [nss::getpwbyuid $uid]
+        return [dict get $user name]
+    } on error {_} {
+        error "unknown user id: $uid"
+    }
+}
+
+proc nss::convert::user {name} {
+    try {
+        set user [nss::getpwbyname $name]
+        return [dict get $user uid]
+    } on error {_} {
+        error "unknown user name: $name"
+    }
+}
+
+proc nss::convert::groupid {gid} {
+    try {
+        set group [nss::getgrbygid $gid]
+        return [dict get $group name]
+    } on error {_} {
+        error "unknown group id: $gid"
+    }
+}
+
+proc nss::convert::group {name} {
+    try {
+        set group [nss::getgrbyname $name]
+        return [dict get $group gid]
+    } on error {_} {
+        error "unknown group name: $name"
+    }
+}

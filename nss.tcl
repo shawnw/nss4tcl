@@ -596,6 +596,9 @@ proc nss::_test {} {
         puts "Failure to look up user bob: $msg"
     }
 
+    set rootuid [nss::convert user root]
+    puts "root uid is $rootuid and uid $rootuid name is [nss::convert userid $rootuid]"
+
     puts "Groups"
     generator foreach group [nss::groups] {
         set members [dict get $group members]
