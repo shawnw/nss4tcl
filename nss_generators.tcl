@@ -117,3 +117,29 @@ proc nss::convert::group {name} {
         error "unknown group name: $name"
     }
 }
+
+proc nss::convert::service args {
+    set len [llength $args]
+    if {$len == 0 || $len > 2} {
+        error "Wrong number of arguments to nss::convert service"
+    }
+    try {
+        set service [nss::getservbyname {*}$args]
+        return [dict get $service port]
+    } on error {_} {
+        error "unknown service name: [lindex $args 0]"
+    }
+}
+
+proc nss::convert::port args {
+    set len [llength $args]
+    if {$len == 0 || $len > 2} {
+        error "Wrong number of arguments to nss::convert port"
+    }
+    try {
+        set service [nss::getservbyport {*}$args]
+        return [dict get $service name]
+    } on error {_} {
+        error "unknown service port: [lindex $args 0]"
+    }
+}

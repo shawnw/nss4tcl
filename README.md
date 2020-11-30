@@ -114,6 +114,14 @@ See `getservbyport(3)`
 Returns a generator that enumerates all services as returned by
 `nss::getservent`.
 
+### nss::convert service name ?proto?
+
+Returns the port associated with the given service name.
+
+### nss::convert port portnumber ?proto?
+
+Returns the service name associated with the given port number.
+
 Protocols
 ---------
 
