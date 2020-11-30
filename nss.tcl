@@ -82,6 +82,7 @@ critcl::ccode {
                 Tcl_DecrRefCount(*dict);
                 return TCL_ERROR;
             }
+            Tcl_DecrRefCount(aliases);
             if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("port", -1),
                                Tcl_NewIntObj(ntohs(ent->s_port))) != TCL_OK) {
                 Tcl_DecrRefCount(*dict);
@@ -108,24 +109,25 @@ critcl::ccode {
                                Tcl_NewStringObj(ent->p_name, -1)) != TCL_OK) {
                 Tcl_DecrRefCount(*dict);
                 return TCL_ERROR;
-            }
-            Tcl_Obj *aliases;
-            if (make_string_list(interp, &aliases, ent->p_aliases) != TCL_OK) {
-                Tcl_DecrRefCount(*dict);
-                return TCL_ERROR;
-            }
-            if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("aliases", -1),
-                               aliases) != TCL_OK) {
-                Tcl_DecrRefCount(aliases);
-                Tcl_DecrRefCount(*dict);
-                return TCL_ERROR;
-            }
-            if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("proto", -1),
-                               Tcl_NewIntObj(ent->p_proto)) != TCL_OK) {
-                Tcl_DecrRefCount(*dict);
-                return TCL_ERROR;
-            }
-        return TCL_OK;
+         }
+         Tcl_Obj *aliases;
+         if (make_string_list(interp, &aliases, ent->p_aliases) != TCL_OK) {
+             Tcl_DecrRefCount(*dict);
+             return TCL_ERROR;
+         }
+         if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("aliases", -1),
+                            aliases) != TCL_OK) {
+              Tcl_DecrRefCount(aliases);
+              Tcl_DecrRefCount(*dict);
+              return TCL_ERROR;
+         }
+         Tcl_DecrRefCount(aliases);
+         if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("proto", -1),
+                            Tcl_NewIntObj(ent->p_proto)) != TCL_OK) {
+              Tcl_DecrRefCount(*dict);
+              return TCL_ERROR;
+         }
+         return TCL_OK;
     }
 
     static int make_netent_dict(Tcl_Interp *interp, Tcl_Obj **dict,
@@ -153,6 +155,7 @@ critcl::ccode {
             Tcl_DecrRefCount(*dict);
             return TCL_ERROR;
         }
+        Tcl_DecrRefCount(aliases);
         if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("addrtype", -1),
                            Tcl_NewIntObj(ent->n_addrtype)) != TCL_OK) {
             Tcl_DecrRefCount(*dict);
@@ -255,7 +258,7 @@ critcl::ccode {
             Tcl_DecrRefCount(*dict);
             return TCL_ERROR;
         }
-
+        Tcl_DecrRefCount(members);
         return TCL_OK;
     }
 }
@@ -321,6 +324,7 @@ namespace eval nss {
                 Tcl_DecrRefCount(dict);
                 return NULL;
             }
+            Tcl_DecrRefCount(addrs);
         }
         return dict;
     }
