@@ -264,17 +264,12 @@ namespace eval nss {
     critcl::cproc sethostent {int stayopen} void
     critcl::cproc endhostent {} void
 
-    critcl::ccommand gethostent {cdata interp objc objv} {
-        if (objc != 1) {
-            Tcl_WrongNumArgs(interp, 1, objv, "");
-            return TCL_ERROR;
-        }
-
+    critcl::cproc gethostent {Tcl_Interp* interp} Tcl_Obj* {
         Tcl_SetErrno(0);
         struct hostent *ent = gethostent();
         if (!ent && Tcl_GetErrno() != 0) {
             Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
-            return TCL_ERROR;
+            return NULL;
         }
 
         Tcl_Obj *dict = Tcl_NewDictObj();
@@ -284,23 +279,23 @@ namespace eval nss {
             if (Tcl_DictObjPut(interp, dict, Tcl_NewStringObj("name", -1),
                                Tcl_NewStringObj(ent->h_name, -1)) != TCL_OK) {
                 Tcl_DecrRefCount(dict);
-                return TCL_ERROR;
+                return NULL;
             }
             Tcl_Obj *aliases;
             if (make_string_list(interp, &aliases, ent->h_aliases) != TCL_OK) {
                 Tcl_DecrRefCount(dict);
-                return TCL_ERROR;
+                return NULL;
             }
             if (Tcl_DictObjPut(interp, dict, Tcl_NewStringObj("aliases", -1),
                                aliases) != TCL_OK) {
                 Tcl_DecrRefCount(aliases);
                 Tcl_DecrRefCount(dict);
-                return TCL_ERROR;
+                return NULL;
             }
             if (Tcl_DictObjPut(interp, dict, Tcl_NewStringObj("addrtype", -1),
                                Tcl_NewIntObj(ent->h_addrtype)) != TCL_OK) {
                 Tcl_DecrRefCount(dict);
-                return TCL_ERROR;
+                return NULL;
             }
             Tcl_Obj *addrs = Tcl_NewListObj(0, NULL);
             Tcl_IncrRefCount(addrs);
@@ -311,49 +306,41 @@ namespace eval nss {
                     Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
                     Tcl_DecrRefCount(addrs);
                     Tcl_DecrRefCount(dict);
-                    return TCL_ERROR;
+                    return NULL;
                 }
                 if (Tcl_ListObjAppendElement(interp, addrs,
                                              Tcl_NewStringObj(addrstr, -1)) != TCL_OK) {
                     Tcl_DecrRefCount(addrs);
                     Tcl_DecrRefCount(dict);
-                    return TCL_ERROR;
+                    return NULL;
                 }
             }
             if (Tcl_DictObjPut(interp, dict, Tcl_NewStringObj("addresses", -1),
                                addrs) != TCL_OK) {
                 Tcl_DecrRefCount(addrs);
                 Tcl_DecrRefCount(dict);
-                return TCL_ERROR;
+                return NULL;
             }
         }
-        Tcl_SetObjResult(interp, dict);
-        Tcl_DecrRefCount(dict);
-        return TCL_OK;
+        return dict;
     }
 
     critcl::cproc setservent {int stayopen} void
     critcl::cproc endservent {} void
 
-    critcl::ccommand getservent {cdata interp objc objv} {
-        if (objc != 1) {
-            Tcl_WrongNumArgs(interp, 1, objv, "");
-            return TCL_ERROR;
-        }
-
+    critcl::cproc getservent {Tcl_Interp* interp} Tcl_Obj* {
         Tcl_SetErrno(0);
         struct servent *ent = getservent();
         if (!ent && Tcl_GetErrno() != 0) {
             Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
-            return TCL_ERROR;
+            return NULL;
         }
 
         Tcl_Obj *res;
         if (make_servent_dict(interp, &res, ent) != TCL_OK) {
-            return TCL_ERROR;
+            return NULL;
         }
-        Tcl_SetObjResult(interp, res);
-        return TCL_OK;
+        return res;
     }
 
     critcl::cproc getservbyname {Tcl_Interp* interp char* name char* {proto NULL}} Tcl_Obj* {
@@ -391,25 +378,20 @@ namespace eval nss {
     critcl::cproc setprotoent {int stayopen} void
     critcl::cproc endprotoent {} void
 
-    critcl::ccommand getprotoent {cdata interp objc objv} {
-        if (objc != 1) {
-            Tcl_WrongNumArgs(interp, 1, objv, "");
-            return TCL_ERROR;
-        }
-
+    critcl::cproc getprotoent {Tcl_Interp* interp} Tcl_Obj* {
         Tcl_SetErrno(0);
         struct protoent *ent = getprotoent();
         if (!ent && Tcl_GetErrno() != 0) {
             Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
-            return TCL_ERROR;
+            return NULL;
         }
 
         Tcl_Obj *res;
         if (make_protoent_dict(interp, &res, ent) != TCL_OK) {
-            return TCL_ERROR;
+            return NULL;
+        } else {
+            return res;
         }
-        Tcl_SetObjResult(interp, res);
-        return TCL_OK;
     }
 
     critcl::cproc getprotobyname {Tcl_Interp* interp char* name} Tcl_Obj* {
@@ -446,25 +428,20 @@ namespace eval nss {
     critcl::cproc setnetent {int stayopen} void
     critcl::cproc endnetent {} void
 
-    critcl::ccommand getnetent {cdata interp objc objv} {
-        if (objc != 1) {
-            Tcl_WrongNumArgs(interp, 1, objv, "");
-            return TCL_ERROR;
-        }
-
+    critcl::cproc getnetent {Tcl_Interp* interp} Tcl_Obj* {
         Tcl_SetErrno(0);
         struct netent *ent = getnetent();
         if (!ent && Tcl_GetErrno() != 0) {
             Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
-            return TCL_ERROR;
+            return NULL;
         }
 
         Tcl_Obj *res;
         if (make_netent_dict(interp, &res, ent) != TCL_OK) {
-            return TCL_ERROR;
+            return NULL;
+        } else {
+            return res;
         }
-        Tcl_SetObjResult(interp, res);
-        return TCL_OK;
     }
 
     critcl::cproc getnetbyname {Tcl_Interp* interp char* name} Tcl_Obj* {
@@ -486,24 +463,19 @@ namespace eval nss {
     critcl::cproc setpwent {} void
     critcl::cproc endpwent {} void
 
-    critcl::ccommand getpwent {cdata interp objc objv} {
-        if (objc != 1) {
-            Tcl_WrongNumArgs(interp, 1, objv, "");
-            return TCL_ERROR;
-        }
-
+    critcl::cproc getpwent {Tcl_Interp* interp} Tcl_Obj* {
         Tcl_SetErrno(0);
         struct passwd *ent = getpwent();
         if (!ent && Tcl_GetErrno() != 0) {
             Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
-            return TCL_ERROR;
+            return NULL;
         }
         Tcl_Obj *res;
         if (make_passwd_dict(interp, &res, ent) != TCL_OK) {
-            return TCL_ERROR;
+            return NULL;
+        } else {
+            return res;
         }
-        Tcl_SetObjResult(interp, res);
-        return TCL_OK;
     }
 
     critcl::cproc getpwbyname {Tcl_Interp* interp char* name} Tcl_Obj* {
@@ -539,24 +511,19 @@ namespace eval nss {
     critcl::cproc setgrent {} void
     critcl::cproc endgrent {} void
 
-    critcl::ccommand getgrent {cdata interp objc objv} {
-        if (objc != 1) {
-            Tcl_WrongNumArgs(interp, 1, objv, "");
-            return TCL_ERROR;
-        }
-
+    critcl::cproc getgrent {Tcl_Interp* interp} Tcl_Obj* {
         Tcl_SetErrno(0);
         struct group *ent = getgrent();
         if (!ent && Tcl_GetErrno() != 0) {
             Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
-            return TCL_ERROR;
+            return NULL;
         }
         Tcl_Obj *res;
         if (make_group_dict(interp, &res, ent) != TCL_OK) {
-            return TCL_ERROR;
+            return NULL;
+        } else {
+            return res;
         }
-        Tcl_SetObjResult(interp, res);
-        return TCL_OK;
     }
 
     critcl::cproc getgrbyname {Tcl_Interp* interp char* name} Tcl_Obj* {
