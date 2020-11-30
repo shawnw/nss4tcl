@@ -14,6 +14,10 @@ Installation
 Run `tclsh build.tcl [LIBRARY_PATH]`, possibly with `sudo`. If a path
 is not given, uses `info library`.
 
+There's also an implementation of glibc's `getent(1)` utility to serve
+as a demonstration of how the package works. Copy it manually to
+`/usr/local/bin` if so desired.
+
 License
 -------
 
@@ -27,9 +31,18 @@ Usage
 
     package require nss
 
-None of these commands are re-entrant. Using the same family in
-multiple threads at once, or, say, `getpwbyname` when a password
+All the different databases provide low-level functions for stepping
+through their records once at a time, routines for looking up specific
+records (All of which are just thin wrappers over the POSIX functions
+of the same or similar name) and a [generator] for a high level
+iterative iterface. You can get a list of all records with commands
+like `generator to list [nss::users]`.
+
+None of these commands are re-entrant. Using the same database family
+in multiple threads at once, or, say, `getpwbyname` when a password
 generator is active, will cause unpredictable results.
+
+[generator]: https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/modules/generator/generator.md
 
 Hosts
 -----
@@ -45,15 +58,15 @@ Commands that return values return a dict with the following fields:
 
 ### nss::sethostent stayopen
 
-Opens or rewinds the connection. See `sethostent(3)`.
+Opens or rewinds the connection to the database. See `sethostent(3)`.
 
 ### nss::endhostent
 
-See `endhostent(3)`
+Closes the connection to the database. See `endhostent(3)`
 
 ### nss::gethostent
 
-Returns the next host, or an empty dictionary if there are no
+Returns the next host record, or an empty dictionary if there are no
 more. See `gethostent(3)`.
 
 ### nss::hosts
