@@ -361,7 +361,7 @@ namespace eval nss {
 
     critcl::cproc getservbyport {Tcl_Interp* interp int port char* {proto NULL}} Tcl_Obj* {
         Tcl_SetErrno(0);
-        struct servent *ent = getservbyport(port, proto);
+        struct servent *ent = getservbyport(htons(port), proto);
         if (!ent && Tcl_GetErrno() != 0) {
             Tcl_AppendResult(interp, "getservbyport: ", Tcl_PosixError(interp), NULL);
             return NULL;
