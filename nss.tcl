@@ -162,7 +162,7 @@ critcl::ccode {
         uint32_t net = htonl(ent->n_net);
         if (!inet_ntop(ent->n_addrtype, &net, addrstr, sizeof addrstr)) {
             Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
-            Tcl_DecrRefCount(dict);
+            Tcl_DecrRefCount(*dict);
             return TCL_ERROR;
         }
         if (Tcl_DictObjPut(interp, *dict, Tcl_NewStringObj("net", -1),
@@ -415,7 +415,7 @@ namespace eval nss {
         struct protoent *ent = getprotobynumber(proto);
         if (!ent && Tcl_GetErrno() != 0) {
             Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_VOLATILE);
-            return TCL_ERROR;
+            return NULL;
         }
         Tcl_Obj *res;
         if (make_protoent_dict(interp, &res, ent) != TCL_OK) {
